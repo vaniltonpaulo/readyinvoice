@@ -57,13 +57,19 @@ def generate_invoice_pdf(data):
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
-    currency = data.get('currency', 'EUR')
-    totals = calculate_totals(data)
+    currency    = data.get('currency', 'EUR')
+    brand_color = data.get('brandColor') or '#e05c25'
+    totals      = calculate_totals(data)
+
+    try:
+        accent = colors.HexColor(brand_color)
+    except Exception:
+        accent = colors.HexColor('#e05c25')
 
     margin = 22 * mm
     y = height - margin
 
-    pdf.setFillColor(colors.HexColor('#0f766e'))
+    pdf.setFillColor(accent)
     pdf.roundRect(margin, y - 15, 34, 34, 5, stroke=0, fill=1)
     pdf.setFillColor(colors.white)
     pdf.setFont('Helvetica-Bold', 15)
@@ -142,7 +148,7 @@ def generate_invoice_pdf(data):
         pdf.drawRightString(value_x, y, currency_amount(value, currency))
         y -= 17
 
-    pdf.setFillColor(colors.HexColor('#0f766e'))
+    pdf.setFillColor(accent)
     pdf.roundRect(label_x - 4, y - 10, 39 * mm, 24, 4, stroke=0, fill=1)
     pdf.setFillColor(colors.white)
     pdf.setFont('Helvetica-Bold', 11)
@@ -158,6 +164,19 @@ def generate_invoice_pdf(data):
         pdf.setFont('Helvetica', 9)
         text = pdf.beginText(margin, y)
         for line in str(notes).splitlines()[:4]:
+            text.textLine(line[:95])
+        pdf.drawText(text)
+        y -= 14 * min(len(str(notes).splitlines()), 4)
+
+    payment_details = data.get('paymentDetails')
+    if payment_details:
+        y -= 24
+        draw_label(pdf, 'Payment details', margin, y)
+        y -= 14
+        pdf.setFillColor(colors.HexColor('#475569'))
+        pdf.setFont('Helvetica', 9)
+        text = pdf.beginText(margin, y)
+        for line in str(payment_details).splitlines()[:5]:
             text.textLine(line[:95])
         pdf.drawText(text)
 

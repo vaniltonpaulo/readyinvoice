@@ -39,7 +39,8 @@ input:disabled {
 }
 
 .invoice-paper {
-  width: min(100%, 470px);
+  width: 100%;
+  max-width: 520px;
   min-height: 665px;
   aspect-ratio: 0.707 / 1;
 }
